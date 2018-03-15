@@ -7,6 +7,6 @@
   ],
   "license": "MIT",
   "scripts": {
-    "start": "node ./packages/server/run"
+    "start": "concurrently \"node packages/server/run\" \"node packages/service/run\""
   }
 }

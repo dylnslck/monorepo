@@ -1,8 +1,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const grpc = require('grpc');
 const Database = require('db');
 
+const PROTO_PATH = `${__dirname}/../../protos/helloworld.proto`;
+const {helloworld} = grpc.load(PROTO_PATH);
+
 class Server {
+  constructor() {
+    this.grpcClient = new helloworld.Greeter(
+      'localhost:3001',
+      grpc.credentials.createInsecure()
+    );
+  }
+
   start(port) {
     const app = express();
     const db = new Database();
@@ -51,6 +62,21 @@ class Server {
           console.error(err);
           res.sendStatus(500);
         }
+      });
+
+    app.route('/service/:name')
+      .get((req, res) => {
+        const {name} = req.params;
+
+        this.grpcClient.sayHello({name}, (err, response) => {
+          if (err) {
+            console.error(err);
+            res.sendStatus(500);
+            return;
+          }
+
+          res.send(response);
+        });
       });
 
     return new Promise((resolve, reject) => {
